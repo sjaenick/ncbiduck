@@ -7,6 +7,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "taxon.hpp"
@@ -31,6 +32,9 @@ class Database {
          void execute_query(const string &q);
          void load_names(unordered_map<int, string> &ret, const string &namesdump);
          void load_nodes(vector<tuple<int, int, string>> &ret, const string &nodesdump);
+         void load_delnodes(unordered_set<int> &ret, const string &nodesdump);
+         void load_merged(unordered_map<int, int> &ret, const string &merged);
+
 };
 
 #endif

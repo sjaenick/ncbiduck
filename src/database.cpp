@@ -28,6 +28,8 @@ void Database::importTaxonomy(const string &taxdir) {
 
      unordered_map<int, string> id2name;
      vector<tuple<int, int, string>> id2parent; // id, parentid, rank
+     unordered_map<int, int> merged;
+     unordered_set<int> delnodes;
      //id2name.reserve(2500000);
      id2parent.reserve(2500000);
 
@@ -35,6 +37,10 @@ void Database::importTaxonomy(const string &taxdir) {
      {
          #pragma omp section
          { load_names(id2name, taxdir + "/names.dmp"); }
+         #pragma omp section
+         { load_delnodes(delnodes, taxdir + "/delnodes.dmp"); }
+         #pragma omp section
+         { load_merged(merged, taxdir + "/merged.dmp"); }
          #pragma omp section
          { load_nodes(id2parent, taxdir + "/nodes.dmp"); 
            //filter_nodes(id2parent, filtered);
@@ -48,13 +54,21 @@ void Database::importTaxonomy(const string &taxdir) {
 
      Appender appender(conn, "taxdata");
      for (const auto &t : id2parent) {
+
          int taxid = std::get<0>(t);
-         appender.BeginRow();
-         appender.Append<int32_t>(taxid);
-         appender.Append<int32_t>(std::get<1>(t));
-         appender.Append<string_t>(id2name[taxid]);
-         appender.Append<string_t>(std::get<2>(t));
-         appender.EndRow();
+         int parentid = std::get<1>(t);
+
+         while (merged.contains(taxid)) { taxid = merged[taxid]; }
+         while (merged.contains(parentid)) { parentid = merged[parentid]; }
+
+         if (!delnodes.contains(taxid) && !delnodes.contains(parentid)) {
+             appender.BeginRow();
+             appender.Append<int32_t>(taxid);
+             appender.Append<int32_t>(parentid);
+             appender.Append<string_t>(id2name[taxid]);
+             appender.Append<string_t>(std::get<2>(t));
+             appender.EndRow();
+         }
      }
      appender.Close();
 
@@ -118,6 +132,7 @@ Taxon Database::by_id(const int &taxid) {
 void Database::execute_query(const string &q) {
     auto result = conn.Query(q);
     if (result->HasError()) {
+         [[unlikely]];
         throw result->GetError();
     }
 }
@@ -168,6 +183,26 @@ void Database::load_nodes(vector<tuple<int, int, string>> &ret, const string &no
     }
 }
 
+void Database::load_merged(unordered_map<int, int> &ret, const string &merged) {
+    if (!file_exists(merged)) {
+        cerr << "BUH!!!! " << merged << endl;
+        return;
+    }
+
+    ifstream infile(merged);
+    string line;
+    const string delim = "\t|\t";
+    while (std::getline(infile, line)) {
+        const size_t pos = line.find(delim);
+        const int taxid = fast_stoi(line.substr(0, pos));
+
+        const size_t pos2 = line.find(delim, pos+3);
+        const int replacement_id = fast_stoi(line.substr(pos+3, pos2-pos-3));
+
+        ret[taxid] = replacement_id;
+    }
+}
+
 void Database::filter_nodes(unordered_map<int, tuple<int, string>> &id2parent, unordered_map<int, int> &filtered) {
 
     const unordered_set<string> major = {
@@ -198,6 +233,23 @@ void Database::filter_nodes(unordered_map<int, tuple<int, string>> &id2parent, u
         }
     }
 }
+
+void Database::load_delnodes(unordered_set<int> &ret, const string &delnodes) {
+    if (!file_exists(delnodes)) {
+        cerr << "BUH!!!! " << delnodes << endl;
+        return;
+    }
+
+    ifstream infile(delnodes);
+    string line;
+    const string delim = "\t|\t";
+    while (std::getline(infile, line)) {
+        const size_t pos = line.find(delim);
+        const int taxid = fast_stoi(line.substr(0, pos));
+        ret.insert(taxid);
+    }
+}
+
 
 Database::~Database() {
     execute_query("CHECKPOINT"); // flush WAL
