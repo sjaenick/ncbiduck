@@ -18,9 +18,10 @@
 using namespace std;
 using namespace duckdb;
 
-Database::Database(const string& dbfile, const string &scoremethod) : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {
-    //execute_query("CREATE OR REPLACE TABLE metadata(key STRING, value STRING)");
-    //conn.Query("INSERT INTO metadata VALUES($1, $2)", "scoremethod", scoremethod);
+//Database::Database(const string& dbfile, const string &scoremethod) : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {
+//}
+
+Database::Database(const string& dbfile) : db(DuckDB(dbfile)), conn(Connection(db))  {
 }
 
 void Database::importTaxonomy(const string &taxdir) {

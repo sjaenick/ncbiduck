@@ -1,5 +1,5 @@
 
-#include "scorefunc.hpp"
+//#include "scorefunc.hpp"
 #include "database.hpp"
 #include "util.hpp"
 
@@ -12,7 +12,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
     string taxdir;
     string dbfile;
-    METHOD scoremethod = MEAN;
+//    METHOD scoremethod = MEAN;
 
 
     int c;
@@ -24,9 +24,9 @@ int main(int argc, char *argv[]) {
             case 'd': 
                 dbfile.assign(optarg);
                 break;
-            case 'g':
-                scoremethod = GEOMMEAN;
-                break;
+//            case 'g':
+//                scoremethod = GEOMMEAN;
+//                break;
             default:
                 cerr << "Usage: createdb -t <taxdir> -d <dbfile> [ -g ]" << endl;
                 return -1;
@@ -43,10 +43,11 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    ScoreFunc* score = ScoreFunc::forName(scoremethod);
-    cerr << "Using " << score->getName() << " scoring." << endl;
+    //ScoreFunc* score = ScoreFunc::forName(scoremethod);
+    //cerr << "Using " << score->getName() << " scoring." << endl;
 
-    Database* db = new Database(dbfile, score->getName());
+    //Database* db = new Database(dbfile, score->getName());
+    Database* db = new Database(dbfile);
     db->importTaxonomy(taxdir);
     vector<Taxon*> lin = db->get_lineage(2675216);
 

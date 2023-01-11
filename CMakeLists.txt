@@ -28,5 +28,10 @@ add_library(refassign STATIC ${SOURCES}
 target_include_directories(refassign PUBLIC src/)
 
 add_executable(createdb src/createdb.cpp)
+add_executable(getlineage src/getlineage.cpp)
+
 target_link_libraries(createdb PUBLIC refassign ${DuckDB_LIBRARIES} OpenMP::OpenMP_CXX)
+target_link_libraries(getlineage PUBLIC refassign ${DuckDB_LIBRARIES} OpenMP::OpenMP_CXX)
+
 install(TARGETS createdb DESTINATION bin)
+install(TARGETS getlineage DESTINATION bin)
