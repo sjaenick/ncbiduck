@@ -1,5 +1,15 @@
 Usage:
 
+0. Compiling from source
+
+Make sure DuckDB is installed. 
+
+- mkdir build
+- cd build
+- cmake ..
+- make
+
+
 I. Initializing a new database
 
 createdb initializes a new database; for this, NCBI taxonomy data and
