@@ -1,0 +1,46 @@
+postprocess bidirectional unfiltered referenceseeker output
+
+needs a combined score CS: (QR ANI + QR Con. DNA + RQ ANI + RQ Con. DNA)/4
+    any better ideas here? OS suggests geometric mean
+
+sql db:
+    (taxid, parent_id, name, cutoff)
+    initialize cutoff at max_combined_score
+
+I. database building:
+
+for all assemblies in genbank:
+    get correct tax. lineage for assembly
+    obtain refseeker result
+    for line in result:
+        compute CS
+        determine tax. lineage of hit
+        filter lineage based on cutoffs in sql db (how?)
+        for wrong_node in filtered_lineage:
+            reduce cutoff in sql db to (CS-0.001)
+
+
+II. bin classification:
+
+obtain refseeker result
+hits = map<taxon, int>
+for line in result:
+    compute CS
+    determine tax. lineage
+    filter lineage based on cutoffs in sql db
+    for taxon in filtered_lineage:
+        hits.put(taxon, hits.get(taxon) + 1)
+
+besthit = None
+bestsum = 0
+for tax, score in hits:
+    sum = 0
+    t = tax
+    while t != tax_root:
+        sum += hits.get(t)
+        t = t.parent
+    if sum > bestsum:
+        besthit = tax
+        bestsum = sum
+
+print lineage for besthit
