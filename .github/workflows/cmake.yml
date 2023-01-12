@@ -26,7 +26,7 @@ jobs:
         mkdir duckdb/build
         cd duckdb/build
         cmake ..
-        make
+        make -j `nproc`
         sudo make install
         cd ../..
         rm -rf duckdb
