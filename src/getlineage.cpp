@@ -31,6 +31,11 @@ int main(int argc, char *argv[]) {
     Database* db = new Database(dbfile);
     vector<Taxon*> lin = db->get_lineage(taxid);
 
+    if (lin.empty()) {
+        cerr << "No such tax id: " << taxid << endl;
+        return 1;
+    }
+
     for (auto &t : lin) {
         cerr << "; " << *t;
         delete t;
