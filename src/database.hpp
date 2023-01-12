@@ -20,7 +20,7 @@ class Database {
         Database(const string &dbfile);
         void import_taxonomy(const string &taxdir);
         vector<Taxon*> get_lineage(const int &taxid);
-        vector<Taxon*> get_all();
+        vector<Taxon> get_all();
         Taxon by_id(const int &taxid);
         ~Database();
 

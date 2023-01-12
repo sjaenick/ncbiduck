@@ -112,7 +112,7 @@ vector<Taxon*> Database::get_lineage(const int &taxid) {
     return ret;
 }
 
-vector<Taxon*> Database::get_all() {
+vector<Taxon> Database::get_all() {
     const string sql = "SELECT taxid, parent_id, name, rank FROM taxdata";
 
     auto conn = Connection(db);
@@ -124,11 +124,11 @@ vector<Taxon*> Database::get_all() {
          throw result->GetError();
     }
 
-    std::vector<Taxon*> ret;
+    std::vector<Taxon> ret;
 
     for (auto &row : *result) {
         bool parent_isnull = row.GetValue<Value>(1).IsNull();
-        Taxon* t = new Taxon(row.GetValue<int32_t>(0), parent_isnull ? -1 : row.GetValue<int32_t>(1), row.GetValue<string>(2), row.GetValue<string>(3));
+        Taxon t(row.GetValue<int32_t>(0), parent_isnull ? -1 : row.GetValue<int32_t>(1), row.GetValue<string>(2), row.GetValue<string>(3));
         ret.push_back(t);
     }
 
