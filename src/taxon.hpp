@@ -12,8 +12,8 @@ class Taxon {
             : taxid(taxid), parentid(parentid), name(name), rank(rank) {};
         inline int getID() const { return taxid; };
         inline int getParentID() const { return parentid; }
-        inline const string getName() const;
-        inline const string getRank() const;
+        inline const string getName() const { return name; }
+        inline const string getRank() const { return rank; }
         ~Taxon() {};
         friend std::ostream& operator<<(std::ostream& output, const Taxon& t);
 
