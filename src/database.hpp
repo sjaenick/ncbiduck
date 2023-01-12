@@ -21,6 +21,7 @@ class Database {
         Database(const string &dbfile); // : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {};
         void import_taxonomy(const string &taxdir);
         vector<Taxon*> get_lineage(const int &taxid);
+        vector<Taxon*> get_all();
         Taxon by_id(const int &taxid);
         ~Database();
 
@@ -31,7 +32,7 @@ class Database {
          void filter_nodes(unordered_map<int, tuple<int, string>> &id2parent, unordered_map<int, int> &filtered);
          void execute_query(const string &q);
          void load_names(unordered_map<int, string> &ret, const string &namesdump);
-         void load_nodes(vector<tuple<int, int, string>> &ret, const string &nodesdump);
+         void load_nodes(unordered_map<int, int> &id2parent, unordered_map<int, string> &id2rank, const string &nodesdump);
          void load_delnodes(unordered_set<int> &ret, const string &nodesdump);
          void load_merged(unordered_map<int, int> &ret, const string &merged);
 

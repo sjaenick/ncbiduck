@@ -10,8 +10,8 @@ class Taxon {
     public:
         Taxon(int taxid, int parentid, const string &name, const string &rank)
             : taxid(taxid), parentid(parentid), name(name), rank(rank) {};
-        inline int getID() const;
-        inline int getParentID() const;
+        inline int getID() const { return taxid; };
+        inline int getParentID() const { return parentid; }
         inline const string getName() const;
         inline const string getRank() const;
         ~Taxon() {};

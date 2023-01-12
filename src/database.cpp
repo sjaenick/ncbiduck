@@ -27,7 +27,8 @@ Database::Database(const string& dbfile) : db(DuckDB(dbfile)), conn(Connection(d
 void Database::import_taxonomy(const string &taxdir) {
 
      unordered_map<int, string> id2name;
-     vector<tuple<int, int, string>> id2parent; // id, parentid, rank
+     unordered_map<int, int> id2parent;
+     unordered_map<int, string> id2rank;
      unordered_map<int, int> merged;
      unordered_set<int> delnodes;
      //id2name.reserve(2500000);
@@ -42,7 +43,7 @@ void Database::import_taxonomy(const string &taxdir) {
          #pragma omp section
          { load_merged(merged, taxdir + "/merged.dmp"); }
          #pragma omp section
-         { load_nodes(id2parent, taxdir + "/nodes.dmp"); 
+         { load_nodes(id2parent, id2rank, taxdir + "/nodes.dmp"); 
            //filter_nodes(id2parent, filtered);
          }
          #pragma omp section
@@ -53,20 +54,23 @@ void Database::import_taxonomy(const string &taxdir) {
      //cerr << "obtained " << filtered.size() << " major NCBI taxonomy nodes." << endl;
 
      Appender appender(conn, "taxdata");
-     for (const auto &t : id2parent) {
-
-         int taxid = std::get<0>(t);
-         int parentid = std::get<1>(t);
+     for (const auto& [key, val] : id2parent) {
+ 
+         int taxid = key;
+         int parentid = val;
 
          while (merged.contains(taxid)) { taxid = merged[taxid]; }
          while (merged.contains(parentid)) { parentid = merged[parentid]; }
 
-         if (!delnodes.contains(taxid) && !delnodes.contains(parentid)) {
+         //while (delnodes.contains(taxid)) { taxid = id2parent[taxid]; }
+         while (delnodes.contains(parentid)) { parentid = id2parent[parentid]; }
+
+         if (!delnodes.contains(taxid)) {
              appender.BeginRow();
              appender.Append<int32_t>(taxid);
              appender.Append<int32_t>(parentid);
              appender.Append<string_t>(id2name[taxid]);
-             appender.Append<string_t>(std::get<2>(t));
+             appender.Append<string_t>(id2rank[taxid]);
              appender.EndRow();
          }
      }
@@ -107,6 +111,28 @@ vector<Taxon*> Database::get_lineage(const int &taxid) {
     }
 
     std::reverse(ret.begin(), ret.end());
+    return ret;
+}
+
+vector<Taxon*> Database::get_all() {
+    const string sql = "SELECT taxid, parent_id, name, rank FROM taxdata";
+
+    auto stmt = conn.Prepare(sql);
+    auto result = stmt->Execute();
+
+    if (result->HasError()) {
+         [[unlikely]];
+         throw result->GetError();
+    }
+
+    std::vector<Taxon*> ret;
+
+    for (auto &row : *result) {
+        bool parent_isnull = row.GetValue<Value>(1).IsNull();
+        Taxon* t = new Taxon(row.GetValue<int32_t>(0), parent_isnull ? -1 : row.GetValue<int32_t>(1), row.GetValue<string>(2), row.GetValue<string>(3));
+        ret.push_back(t);
+    }
+
     return ret;
 }
 
@@ -161,7 +187,7 @@ void Database::load_names(unordered_map<int, string> &ret, const string &namesdu
     }
 }
 
-void Database::load_nodes(vector<tuple<int, int, string>> &ret, const string &nodesdump) {
+void Database::load_nodes(unordered_map<int, int> &id2parent, unordered_map<int, string> &id2rank, const string &nodesdump) {
     if (!file_exists(nodesdump)) {
         cerr << "BUH!!!! " << nodesdump << endl;
         return;
@@ -179,7 +205,10 @@ void Database::load_nodes(vector<tuple<int, int, string>> &ret, const string &no
 
         const size_t pos3 = line.find(delim, pos2+3);
         const string rank = line.substr(pos2+3, pos3-pos2-3);
-        ret.push_back(make_tuple(taxid, parent_id, rank));
+
+        id2parent[taxid] = parent_id;
+        id2rank[taxid] = rank;
+        //ret.push_back(make_tuple(taxid, parent_id, rank));
     }
 }
 
