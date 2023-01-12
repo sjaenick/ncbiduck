@@ -24,7 +24,7 @@ using namespace duckdb;
 Database::Database(const string& dbfile) : db(DuckDB(dbfile)), conn(Connection(db))  {
 }
 
-void Database::importTaxonomy(const string &taxdir) {
+void Database::import_taxonomy(const string &taxdir) {
 
      unordered_map<int, string> id2name;
      vector<tuple<int, int, string>> id2parent; // id, parentid, rank
@@ -45,12 +45,12 @@ void Database::importTaxonomy(const string &taxdir) {
          { load_nodes(id2parent, taxdir + "/nodes.dmp"); 
            //filter_nodes(id2parent, filtered);
          }
+         #pragma omp section
+         { execute_query("CREATE OR REPLACE TABLE taxdata(taxid INTEGER NOT NULL, parent_id INTEGER, name STRING NOT NULL, rank STRING NOT NULL)"); }
      }
 
      cerr << "read " << id2name.size() << " NCBI taxonomy nodes." << endl;
      //cerr << "obtained " << filtered.size() << " major NCBI taxonomy nodes." << endl;
-
-     execute_query("CREATE OR REPLACE TABLE taxdata(taxid INTEGER NOT NULL, parent_id INTEGER, name STRING NOT NULL, rank STRING NOT NULL)");
 
      Appender appender(conn, "taxdata");
      for (const auto &t : id2parent) {

@@ -19,7 +19,7 @@ class Database {
     public:
         //Database(const string &dbfile, const string &scoremethod); // : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {};
         Database(const string &dbfile); // : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {};
-        void importTaxonomy(const string &taxdir);
+        void import_taxonomy(const string &taxdir);
         vector<Taxon*> get_lineage(const int &taxid);
         Taxon by_id(const int &taxid);
         ~Database();
