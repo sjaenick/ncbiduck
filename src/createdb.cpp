@@ -49,13 +49,6 @@ int main(int argc, char *argv[]) {
     //Database* db = new Database(dbfile, score->getName());
     Database* db = new Database(dbfile);
     db->import_taxonomy(taxdir);
-    vector<Taxon*> lin = db->get_lineage(2675216);
-
-    for (auto &t : lin) {
-        cerr << "; " << *t;
-        delete t;
-    }
-    cerr << endl;
 
     delete db;
 
