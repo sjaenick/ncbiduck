@@ -17,6 +17,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -O3")
 
 add_compile_options(-Wall -Wextra)
+add_link_options(-s)
 
 add_library(refassign STATIC ${SOURCES}
   src/scorefunc.cpp
