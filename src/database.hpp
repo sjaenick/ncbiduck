@@ -17,8 +17,7 @@ using namespace duckdb;
 
 class Database {
     public:
-        //Database(const string &dbfile, const string &scoremethod); // : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {};
-        Database(const string &dbfile); // : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {};
+        Database(const string &dbfile);
         void import_taxonomy(const string &taxdir);
         vector<Taxon*> get_lineage(const int &taxid);
         vector<Taxon*> get_all();
@@ -27,7 +26,6 @@ class Database {
 
     private:
          DuckDB db;
-         Connection conn;
          //string scoremethod;
          void filter_nodes(unordered_map<int, tuple<int, string>> &id2parent, unordered_map<int, int> &filtered);
          void execute_query(const string &q);

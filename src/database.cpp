@@ -21,7 +21,7 @@ using namespace duckdb;
 //Database::Database(const string& dbfile, const string &scoremethod) : db(DuckDB(dbfile)), conn(Connection(db)), scoremethod(scoremethod) {
 //}
 
-Database::Database(const string& dbfile) : db(DuckDB(dbfile)), conn(Connection(db))  {
+Database::Database(const string& dbfile) : db(DuckDB(dbfile))   {
 }
 
 void Database::import_taxonomy(const string &taxdir) {
@@ -31,8 +31,6 @@ void Database::import_taxonomy(const string &taxdir) {
      unordered_map<int, string> id2rank;
      unordered_map<int, int> merged;
      unordered_set<int> delnodes;
-     //id2name.reserve(2500000);
-     id2parent.reserve(2500000);
 
      #pragma omp parallel sections
      {
@@ -51,21 +49,20 @@ void Database::import_taxonomy(const string &taxdir) {
      }
 
      cerr << "read " << id2name.size() << " NCBI taxonomy nodes." << endl;
-     //cerr << "obtained " << filtered.size() << " major NCBI taxonomy nodes." << endl;
 
+     auto conn = Connection(db);
      Appender appender(conn, "taxdata");
      for (const auto& [key, val] : id2parent) {
  
          int taxid = key;
          int parentid = val;
 
-         while (merged.contains(taxid)) { taxid = merged[taxid]; }
-         while (merged.contains(parentid)) { parentid = merged[parentid]; }
-
-         //while (delnodes.contains(taxid)) { taxid = id2parent[taxid]; }
-         while (delnodes.contains(parentid)) { parentid = id2parent[parentid]; }
-
          if (!delnodes.contains(taxid)) {
+
+             while (merged.contains(taxid)) { taxid = merged[taxid]; }
+             while (merged.contains(parentid)) { parentid = merged[parentid]; }
+             while (delnodes.contains(parentid)) { parentid = id2parent[parentid]; }
+
              appender.BeginRow();
              appender.Append<int32_t>(taxid);
              appender.Append<int32_t>(parentid);
@@ -94,6 +91,7 @@ vector<Taxon*> Database::get_lineage(const int &taxid) {
         "SELECT h.taxid, h.parent_id, t.name, t.rank FROM hierarchy h "
         "LEFT JOIN taxdata t ON h.taxid=t.taxid";
 
+    auto conn = Connection(db);
     auto stmt = conn.Prepare(sql);
     auto result = stmt->Execute(taxid);
 
@@ -117,6 +115,7 @@ vector<Taxon*> Database::get_lineage(const int &taxid) {
 vector<Taxon*> Database::get_all() {
     const string sql = "SELECT taxid, parent_id, name, rank FROM taxdata";
 
+    auto conn = Connection(db);
     auto stmt = conn.Prepare(sql);
     auto result = stmt->Execute();
 
@@ -139,6 +138,7 @@ vector<Taxon*> Database::get_all() {
 Taxon Database::by_id(const int &taxid) {
     const string sql = "SELECT taxid, parent_id, name, rank FROM taxdata WHERE taxid=$1";
 
+    auto conn = Connection(db);
     auto stmt = conn.Prepare(sql);
     auto result = stmt->Execute(taxid);
 
@@ -156,6 +156,7 @@ Taxon Database::by_id(const int &taxid) {
 }
 
 void Database::execute_query(const string &q) {
+    auto conn = Connection(db);
     auto result = conn.Query(q);
     if (result->HasError()) {
          [[unlikely]];
