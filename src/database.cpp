@@ -76,11 +76,11 @@ void Database::import_taxonomy(const string &taxdir) {
      // make sure root node does not have a parent
      execute_query("UPDATE taxdata SET parent_id=NULL WHERE taxid=1");
 
-     execute_query("CREATE INDEX id_idx ON taxdata(taxid, parent_id)");
+     //execute_query("CREATE INDEX id_idx ON taxdata(taxid, parent_id)");
      //execute_query("ALTER TABLE taxdata ALTER COLUMN taxid TYPE INTEGER unique");
 }
 
-vector<Taxon*> Database::get_lineage(const int &taxid) {
+vector<Taxon> Database::get_lineage(const int &taxid) {
     const string sql = "WITH RECURSIVE hierarchy AS ( "
         "SELECT taxid, parent_id FROM taxdata WHERE taxid=$1 "
         "UNION ALL "
@@ -100,11 +100,11 @@ vector<Taxon*> Database::get_lineage(const int &taxid) {
          throw result->GetError();
     }
 
-    std::vector<Taxon*> ret;
+    std::vector<Taxon> ret;
 
     for (auto &row : *result) {
         bool parent_isnull = row.GetValue<Value>(1).IsNull();
-        Taxon* t = new Taxon(row.GetValue<int32_t>(0), parent_isnull ? -1 : row.GetValue<int32_t>(1), row.GetValue<string>(2), row.GetValue<string>(3));
+        Taxon t(row.GetValue<int32_t>(0), parent_isnull ? -1 : row.GetValue<int32_t>(1), row.GetValue<string>(2), row.GetValue<string>(3));
         ret.push_back(t);
     }
 
@@ -209,7 +209,6 @@ void Database::load_nodes(unordered_map<int, int> &id2parent, unordered_map<int,
 
         id2parent[taxid] = parent_id;
         id2rank[taxid] = rank;
-        //ret.push_back(make_tuple(taxid, parent_id, rank));
     }
 }
 
@@ -279,7 +278,6 @@ void Database::load_delnodes(unordered_set<int> &ret, const string &delnodes) {
         ret.insert(taxid);
     }
 }
-
 
 Database::~Database() {
     execute_query("CHECKPOINT"); // flush WAL

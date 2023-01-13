@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     bool error = false;
     vector<Taxon> all = db->get_all();
     unordered_set<int> seen;
-    //unordered_set<Taxon*> sen;
+    //unordered_set<Taxon> sen;
     //int count = 0;
 
     #pragma omp parallel for
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
         if (!seen.contains(t.getID())) {
 
-            vector<Taxon*> lin = db->get_lineage(t.getID());
+            vector<Taxon> lin = db->get_lineage(t.getID());
 
             if (lin.empty()) {
                 cerr << "No such tax id: " << t.getID() << endl;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
                 error = true;
             }
 
-            Taxon root = *lin.front();
+            Taxon root = lin.front();
             if (root.getID() != 1) {
                 cerr << "lineage for " << t.getName() << " with ID " << t.getID() << " not rooted!" << endl;
                 #pragma omp critical
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
             }
 
             #pragma omp critical
-            for (auto& x : lin) { seen.insert(x->getID()); }
+            for (auto x : lin) { seen.insert(x.getID()); }
 
         }
     }

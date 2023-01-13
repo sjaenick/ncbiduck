@@ -6,7 +6,7 @@
 using namespace std;
 
 std::ostream& operator<<(std::ostream &os, const Taxon &t) {
-    os << t.getName();
+    os << t.name;
     return os;
 }
 
