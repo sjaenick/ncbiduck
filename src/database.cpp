@@ -181,9 +181,9 @@ void Database::load_names(unordered_map<int, string> &ret, const string &namesdu
             const size_t pos = line.find(delim);
             const size_t pos2 = line.find(delim, pos+3);
 
-            const string taxid = line.substr(0, pos);
+            const int taxid = fast_stoi(line, 0, pos);
             const string name = line.substr(pos+3, pos2-pos-3);
-            ret[fast_stoi(taxid)] = name;
+            ret[taxid] = name;
         }
     }
 }
@@ -199,10 +199,10 @@ void Database::load_nodes(unordered_map<int, int> &id2parent, unordered_map<int,
     const string delim = "\t";
     while (std::getline(infile, line)) {
         const size_t pos = line.find(delim);
-        const int taxid = fast_stoi(line.substr(0, pos));
+        const int taxid = fast_stoi(line, 0, pos);
 
         const size_t pos2 = line.find(delim, pos+3);
-        const int parent_id = fast_stoi(line.substr(pos+3, pos2-pos-3));
+        const int parent_id = fast_stoi(line, pos+3, pos2-pos-3);
 
         const size_t pos3 = line.find(delim, pos2+3);
         const string rank = line.substr(pos2+3, pos3-pos2-3);
@@ -223,9 +223,9 @@ void Database::load_merged(unordered_map<int, int> &ret, const string &merged) {
     const string delim = "\t";
     while (std::getline(infile, line)) {
         const size_t pos = line.find(delim);
-        const int taxid = fast_stoi(line.substr(0, pos));
+        const int taxid = fast_stoi(line, 0, pos);
 
-        const int replacement_id = fast_stoi(line.substr(pos+3, line.length() -pos-5));
+        const int replacement_id = fast_stoi(line, pos+3, line.length() -pos-5);
 
         ret[taxid] = replacement_id;
     }
@@ -271,7 +271,7 @@ void Database::load_delnodes(unordered_set<int> &ret, const string &delnodes) {
     ifstream infile(delnodes);
     string line;
     while (std::getline(infile, line)) {
-        const int taxid = fast_stoi(line.substr(0, line.length()-2));
+        const int taxid = fast_stoi(line, 0, line.length()-2);
         ret.insert(taxid);
     }
 }

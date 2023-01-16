@@ -40,5 +40,15 @@ inline int fast_stoi(const string &s) {
     return fast_atoi(s.c_str());
 }
 
+inline int fast_stoi(const string &s, const size_t pos, const size_t len) {
+    int ret = 0;
+    const char *p = s.c_str();
+    for (size_t i=pos; i<pos+len; i++) {
+        int x = *(p+i) - '0';
+        ret = ret*10 + x;
+    }
+    return ret;
+}
+
 
 #endif
