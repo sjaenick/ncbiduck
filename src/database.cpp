@@ -96,8 +96,8 @@ vector<Taxon> Database::get_lineage(const int &taxid) {
     auto result = stmt->Execute(taxid);
 
     if (result->HasError()) {
-         [[unlikely]];
-         throw result->GetError();
+        [[unlikely]];
+        throw result->GetError();
     }
 
     std::vector<Taxon> ret;
@@ -120,8 +120,8 @@ vector<Taxon> Database::get_all() {
     auto result = stmt->Execute();
 
     if (result->HasError()) {
-         [[unlikely]];
-         throw result->GetError();
+        [[unlikely]];
+        throw result->GetError();
     }
 
     std::vector<Taxon> ret;
@@ -143,8 +143,8 @@ Taxon Database::by_id(const int &taxid) {
     auto result = stmt->Execute(taxid);
 
     if (result->HasError()) {
-         [[unlikely]];
-         throw result->GetError();
+        [[unlikely]];
+        throw result->GetError();
     }
 
     for (auto &row : *result) {
