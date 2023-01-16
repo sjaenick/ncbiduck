@@ -41,7 +41,7 @@ void Database::import_taxonomy(const string &taxdir) {
          #pragma omp section
          { load_merged(merged, taxdir + "/merged.dmp"); }
          #pragma omp section
-         { load_nodes(id2parent, id2rank, taxdir + "/nodes.dmp"); 
+         { load_nodes(id2parent, id2rank, taxdir + "/nodes.dmp");
            //filter_nodes(id2parent, filtered);
          }
          #pragma omp section
@@ -172,7 +172,7 @@ void Database::load_names(unordered_map<int, string> &ret, const string &namesdu
 
     ifstream infile(namesdump);
     string line;
-    const string delim = "\t|\t";
+    const string delim = "\t";
     while (std::getline(infile, line)) {
         // avoid processing a line that doesn't contain the term 'scientific';
         // also, we can skip over three separators (9bytes) and at least 3
@@ -196,7 +196,7 @@ void Database::load_nodes(unordered_map<int, int> &id2parent, unordered_map<int,
 
     ifstream infile(nodesdump);
     string line;
-    const string delim = "\t|\t";
+    const string delim = "\t";
     while (std::getline(infile, line)) {
         const size_t pos = line.find(delim);
         const int taxid = fast_stoi(line.substr(0, pos));
@@ -220,13 +220,12 @@ void Database::load_merged(unordered_map<int, int> &ret, const string &merged) {
 
     ifstream infile(merged);
     string line;
-    const string delim = "\t|\t";
+    const string delim = "\t";
     while (std::getline(infile, line)) {
         const size_t pos = line.find(delim);
         const int taxid = fast_stoi(line.substr(0, pos));
 
-        const size_t pos2 = line.find(delim, pos+3);
-        const int replacement_id = fast_stoi(line.substr(pos+3, pos2-pos-3));
+        const int replacement_id = fast_stoi(line.substr(pos+3, line.length() -pos-5));
 
         ret[taxid] = replacement_id;
     }
@@ -271,10 +270,8 @@ void Database::load_delnodes(unordered_set<int> &ret, const string &delnodes) {
 
     ifstream infile(delnodes);
     string line;
-    const string delim = "\t|\t";
     while (std::getline(infile, line)) {
-        const size_t pos = line.find(delim);
-        const int taxid = fast_stoi(line.substr(0, pos));
+        const int taxid = fast_stoi(line.substr(0, line.length()-2));
         ret.insert(taxid);
     }
 }
