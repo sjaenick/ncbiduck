@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    for (auto t : lin) {
+    for (const auto& t : lin) {
         cerr << "; " << t;
     }
     cerr << endl;
